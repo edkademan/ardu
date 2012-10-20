@@ -43,7 +43,7 @@ byte log_is_open;
 
 //              0         1         2         3         4
 // offsets:     01234567890123456789012345678901234567890
-byte  line[] = "yyyy.mm.dd HH:MM:SS +000.00 00000000 0000\n";
+byte  line[] = "yyyy.mm.dd HH:MM:SS 00000000 +000.00 0000\n";
 const int short_line_pos = 19;
 
 // offsets:    0123456789012
@@ -226,7 +226,7 @@ static void store_time()
   to_dec(now.second(),line+17,2);
   
   uint32_t ts = now.unixtime();
-  to_hex(ts,line+28,8);
+  to_hex(ts,line+20,8);
 }
 
 static void store_temp(uint16_t t)
@@ -234,9 +234,9 @@ static void store_temp(uint16_t t)
   to_hex(t,line+37,4);
   
   uint16_t cel = t >> 4;
-  to_dec(cel,line+21,3);
+  to_dec(cel,line+30,3);
   uint16_t mil = (cel & 0xf) * 100 / 16;
-  to_dec(mil,line+25,2);
+  to_dec(mil,line+34,2);
 }
 
 static void store_name()
@@ -330,6 +330,16 @@ static void adjust_clock()
   next_ts = ts + delta;
 }
 
+static void read_clock()
+{
+  year = now.year();
+  month = now.month();
+  day = now.day();
+  hour = now.hour();
+  minute = now.minute();
+  second = now.second();
+}
+
 const byte ERR_CMD = 9;
 const byte ERR_SYNTAX = 8;
 const byte OK = 0;
@@ -377,6 +387,9 @@ static byte handle_command()
       return log_open();
     case 'c': // close log
       return log_close();
+    case 'r': // read clock
+      read_clock();
+      break;
     default:
       return ERR_CMD;
   }
@@ -502,7 +515,7 @@ void loop () {
       if(file) {
         led_red(0);
         size_t len = file.write(line, sizeof(line)-1);
-        if(len != (sizeof(line)-1) {
+        if(len != (sizeof(line)-1)) {
           Serial.println("WERR!");
           log_close();
         } else {
