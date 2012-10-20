@@ -1,0 +1,141 @@
+My Arduino Projects
+-------------------
+
+This is my collection of small projects I've done on the Arduino platform.
+
+1. datalog - a small stand-alone data logger capturing temperature on SD card
+
+1. datalog
+==========
+
+1.1 Hardware
+------------
+
+  * Arduino Uno
+  * Adafruit Data Logger Shield [1]
+  * 1 Push Button
+  * 1 DS 18S20 Temperature Sensor
+  
+  Wiring:
+  
+  DIGITAL 2    Input Push Button (Toggle log recording on SD card)
+  DIGITAL 3    red LED (on = log is written to SD)
+  DIGITAL 4    green LED (on = operational)
+  DIGITAL 7    data pin DS 18S20
+
+  * See [2] on how to connect a button 
+  * The two LEDs are already available on the shield 
+    You only have to connect them to the DIGITAL ports of the Arduino
+  * The temperature sensor needs +5V and GND addtionally.
+    Take these lines directly from the shield
+    See [3] for the pin out of the sensor
+    I put the 3 sensor lines on a connector so you can attach a wire
+    and place the sensor freely detached from the board.
+
+  [1] http://www.ladyada.net/make/logshield/
+  [2] http://www.arduino.cc/en/Tutorial/button
+  [3] http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf
+
+1.2 Firmware
+------------
+
+  Build
+
+  * Install the RTClib from Arduino's site [1]
+  * Install the OneWire library [2]
+  * Compile and run the Arduino datalog.ino sketch found here in the
+    Arduino IDE
+  
+  [1] http://www.ladyada.net/make/logshield/rtc.html
+  [2] http://www.arduino.cc/playground/Learning/OneWire
+
+  Startup
+  
+  * Insert a SD Card and make sure the clock battery is inserted
+  * Reset or power on Arduino
+  * Open the serial console in the Arduino IDE to see the output of the logger
+  
+  LED Output
+
+  * The green light should be enabled and it blinks every time the
+    temperature is measured
+  * If the red LED blinks then something went wrong
+    * Check SD Card
+    * Check temperature sensor
+    * Check Real Time Clock
+    * Reset and try again
+    * See serial console for error message
+  * If the red LED stay on then logging to a file on SD card is enabled
+  
+  BUTTON Input
+  
+  * If you press the button for the first time then the logger starts to
+    write the temperature values to a log file on the SD card. The red
+    LED is enabled.
+  * If you press the button again then the logger stops writing to SD card
+    and closes this file. The red LED is disabled.
+    
+  SERIAL Output
+  
+  * First message is the detected temperature sensor type and the unique
+    code of the sensor
+  * Then in regular interval the temperature is measured and printed 
+  * If some error occurrs it will be written to serial output, too
+  
+  SERIAL Input
+  
+  * You can input a line of text followed by a newline or return to enter
+    commands (In Arduino IDE enable "Line Endings" in Monitor window!)
+  * The following commands are recognized:
+  
+    'y' <nnnn>     - enter date year
+    'm' <nn>       - enter date month
+    'd' <nn>       - enter date day
+    'H' <nn>       - enter time hours
+    'M' <nn>       - enter time minutes
+    'S' <nn>       - enter time seconds
+    'a'            - adjust clock and write previously set values
+    'r'            - read current clock values to allow adjustment
+    'd' <nnnn>     - set the delay of temperature measurements in seconds
+                     (default: 10)
+    'o'            - open a log file on SD card
+    'c'            - close the log file on SD card
+  
+  Initial Setup
+  
+  Its advisable to first setup the real time clock on your logger:
+  In the serial console give the following commands (e.g. for today):
+  
+    y2012
+    m10
+    d20
+    H11
+    M25
+    S00
+    a
+   
+  As the clock is powered by the attached battery you can now disconnect
+  the logger from your Host Mac/PC and use it standalone. Power it with a
+  battery pack if you need it really portable.
+    
+  LOG FILES
+  
+  The log files are stored on SD card and are named automatically with the
+  current date:
+  
+  <YY><MM><DD>_a.log
+  
+  The letter in the name is incremented automatically if a new log is written
+  on the same day.
+  
+  A log contains lines that look like this:
+  
+  2012.10.19 22:04:56 +025.56 5081CE88 019C
+  
+  The columns denote the following:
+    * date
+    * time
+    * temperature in degrees celcius
+    * time stamp in UNIX format and hex
+    * raw sensor value in hex (divide by 16 to get celcius value)
+  
