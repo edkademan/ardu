@@ -44,7 +44,7 @@ byte log_is_open;
 //              0         1         2         3         4
 // offsets:     01234567890123456789012345678901234567890
 byte  line[] = "yyyy.mm.dd HH:MM:SS 00000000 +000.00 0000\n";
-const int short_line_pos = 19;
+const int time_line_pos = 28;
 
 // offsets:    0123456789012
 byte name[] = "yymmdd_x.log";
@@ -143,7 +143,7 @@ static unsigned int temp_read(byte *ok)
   ds.select(ds_addr);
   ds.write(0x44,1); // start measurement
   
-  delay(500);
+  delay(1000);
   
   byte present = ds.reset();
   ds.select(ds_addr);
@@ -314,6 +314,14 @@ static void store_word_val(uint16_t v, byte cmd)
   }
 }
 
+static void print_time()
+{
+  Serial.print("c: ");
+  line[time_line_pos] = 0;
+  Serial.println((char *)line);
+  line[time_line_pos] = ' ';
+}
+
 static void adjust_clock()
 {
   DateTime set(year,month,day,hour,minute,second);
@@ -324,7 +332,7 @@ static void adjust_clock()
   uint32_t ts = now.unixtime();
   
   store_time();
-  Serial.print((char *)line);
+  print_time();
 
   // update next time
   next_ts = ts + delta;
@@ -332,12 +340,17 @@ static void adjust_clock()
 
 static void read_clock()
 {
+  now = RTC.now();
+  
   year = now.year();
   month = now.month();
   day = now.day();
   hour = now.hour();
   minute = now.minute();
   second = now.second();
+  
+  store_time();
+  print_time();
 }
 
 const byte ERR_CMD = 9;
