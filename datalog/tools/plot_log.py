@@ -17,7 +17,7 @@ rrd_file = "tmp.rrd"
 
 create = [
   'rrdtool','create',rrd_file,'--step','60','--start',0,
-  'DS:temp:GAUGE:120:-20:50',
+  'DS:temp:GAUGE:50:-20:50',
   'RRA:AVERAGE:0.5:1:1440',
   'RRA:MIN:0.5:1:1440',
   'RRA:MAX:0.5:1:1440'
@@ -30,6 +30,7 @@ graph = [
   '--color=BACK#FFFFFF',
   '--vertical-label', '°C', 
   '--title','temperature',
+  '-l','-20','-u','50',
   'DEF:temp='+rrd_file+':temp:AVERAGE',
   'LINE2:temp#3366CC'
 ]
@@ -38,8 +39,8 @@ samples = []
 f = open(log_file,"r")
 for line in f:
   elem = line.split(' ')
-  temp = float(elem[2])
-  ts = int(elem[3],16)
+  temp = float(elem[3])
+  ts = int(elem[2],16)
   samples.append((ts,temp))
 f.close()
 
