@@ -3,12 +3,12 @@ Temperature Logger
 This code is based on the datalogger project hosted [[https://github.com/cnvogelg/ardu][here]].
 
 * Hardware
-  + Components
+  - Components
     - Arduino Uno
     - [[http://www.ladyada.net/make/logshield/][Adafruit Data Logger Shield]]
     - 1 Push Button
     - 1 DS18B20 Temperature Sensor
-  + Wiring
+  - Wiring
     - DIGITAL 2 Input Push Button (toggle log recording on SD card)
     - DIGITAL 3 green LED (on => logger is ok)
     - DIGITAL 4 red LED   (on => logger is writing to SD card)
@@ -16,19 +16,19 @@ This code is based on the datalogger project hosted [[https://github.com/cnvogel
 
 See the arduino button [[http://www.arduino.cc/en/Tutorial/button][tutorial]] on how to connect the button.  The two
 LEDs are already available on the shield, you only have to connect
-them to the DIGITAL ports of the Arduino. The temperature sensor needs +5V
-and GND additionally. Take these lines directly from the
+them to the DIGITAL ports of the Arduino. The temperature sensor needs
++5V and GND additionally. Take these lines directly from the
 shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datasheet]] for the pin out of the sensor.
 
 * Additional Libraries
-  + [[http://www.ladyada.net/make/logshield/rtc.html][RTClib]]
-  + [[http://www.arduino.cc/playground/Learning/OneWire][OneWire]]
+  - [[http://www.ladyada.net/make/logshield/rtc.html][RTClib]]
+  - [[http://www.arduino.cc/playground/Learning/OneWire][OneWire]]
 
 * Stand Alone Operation
-  + Startup
+  - Startup
     - Insert an SD Card and make sure the clock battery is inserted.
     - Reset or power on Arduino.
-  + Reading the LED's
+  - Reading the LED's
     - When the unit is operating normally the green led should be on
       (almost) constantly. It only blinks off for a moment when the
       program takes and records a temperature reading.
@@ -41,7 +41,7 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
       + Reset and try again.
       + Connect to a computer and look for a possible error message on
         the serial console.
-  + Pushing the Button
+  - Pushing the Button
     - Pressing the button will instruct the software to log readings
       to a file on the SD card. The red led should light up.
     - Pressing the button a second time will disable logging and close
@@ -52,13 +52,13 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
 * Operating While Connected to a Host Computer
 With the unit connected to a usb port open the serial console in the
 Arduino IDE to see the output of the logger.
-  + Reading from the Serial Connection
+  - Reading from the Serial Connection
     - On startup the program prints out the temperature sensor type
       and code.
     - At regular intervals it prints out a timestamp and the
       temperature.
     - It also prints out messages describing any errors it encounters.
-  + Writing to the Serial Connection
+  - Writing to the Serial Connection
 
     You can type in a line of text and hit RETURN to enter commands.
     - Set the date by entering a line with the format yyyy-mm-dd for
@@ -94,11 +94,11 @@ dd are the month and day of month numbers and a is "a" for the first
 file created that day, and "b" for the second and so on. Each entry in
 the log file has 5 components:
 
-  + the date as yyyy-mm-dd,
-  + the time as hh:mm:ss,
-  + the time as number of seconds since the epoch (1970-1-1),
-  + the temperature in fahrenheit, and
-  + the raw temperature reading as a hexadecimal number. (For the
+  - the date as yyyy-mm-dd,
+  - the time as hh:mm:ss,
+  - the time as number of seconds since the epoch (1970-1-1),
+  - the temperature in fahrenheit, and
+  - the raw temperature reading as a hexadecimal number. (For the
     DS18B20 this is the temperature in celsius times 16.)
 
 For example, a line will look something like this:
