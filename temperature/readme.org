@@ -12,13 +12,13 @@ This code is based on the datalogger project hosted [[https://github.com/cnvogel
     - DIGITAL 2 Input Push Button (toggle log recording on SD card)
     - DIGITAL 3 green LED (on => logger is ok)
     - DIGITAL 4 red LED   (on => logger is writing to SD card)
-    - DIGITAL 7 data pin DS 18S20
+    - DIGITAL 7 data pin DS 18B20
 
 See the arduino button [[http://www.arduino.cc/en/Tutorial/button][tutorial]] on how to connect the button.  The two
-LEDs are already available on the shield you only have to connect them
-to the DIGITAL ports of the Arduino. The temperature sensor needs +5V
-and GND addtionally. Take these lines directly from the shield. See
-the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datasheet]] for the pin out of the sensor.
+LEDs are already available on the shield, you only have to connect
+them to the DIGITAL ports of the Arduino. The temperature sensor needs
++5V and GND additionally. Take these lines directly from the
+shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datasheet]] for the pin out of the sensor.
 
 * Additional Libraries
   + [[http://www.ladyada.net/make/logshield/rtc.html][RTClib]]
@@ -31,15 +31,16 @@ the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datasheet]] for t
   + Reading the LED's
     - When the unit is operating normally the green led should be on
       (almost) constantly. It only blinks off for a moment when the
-      program takes and records an actual temperature reading.
+      program takes and records a temperature reading.
     - The red led is on solidly---not blinking---when the software is
       logging readings to a file on the SD card.
     - If the red led blinks then something went wrong.
       + Check the SD Card.
       + Check the temperature sensor.
-      +  Check the real time clock.
+      + Check the real time clock.
       + Reset and try again.
-      + See the serial console for a possible error message.
+      + Connect to a computer and look for a possible error message on
+        the serial console.
   + Pushing the Button
     - Pressing the button will instruct the software to log readings
       to a file on the SD card. The red led should light up.
@@ -58,6 +59,7 @@ Arduino IDE to see the output of the logger.
       temperature.
     - It also prints out messages describing any errors it encounters.
   + Writing to the Serial Connection
+
     You can type in a line of text and hit RETURN to enter commands.
     - Set the date by entering a line with the format yyyy-mm-dd for
       year month day of month. For example:
