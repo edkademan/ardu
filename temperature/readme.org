@@ -16,8 +16,8 @@ This code is based on the datalogger project hosted [[https://github.com/cnvogel
 
 See the arduino button [[http://www.arduino.cc/en/Tutorial/button][tutorial]] on how to connect the button.  The two
 LEDs are already available on the shield, you only have to connect
-them to the DIGITAL ports of the Arduino. The temperature sensor needs
-+5V and GND additionally. Take these lines directly from the
+them to the DIGITAL ports of the Arduino. The temperature sensor
+needs +5V and GND additionally. Take these lines directly from the
 shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datasheet]] for the pin out of the sensor.
 
 * Additional Libraries
