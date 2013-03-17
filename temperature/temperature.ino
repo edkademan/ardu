@@ -225,16 +225,6 @@ static int buttonPress() {
     if(!buttonWasPressed) return 0;}
   return 1;}
 
-static void pause(cbuf* b) {
-  digitalWrite(GREENLED, HIGH);
-  for(;;) {
-    if(now() >= timeToMeasure) {
-      timeToMeasure += delta;
-      break;}
-    if(readSerial(b)) runCommand(b);
-    if(buttonPress()) handleButton();}
-  digitalWrite(GREENLED, LOW);}
-
 static byte createInfo(char* s, byte* dr) {
   byte ok = 0;
   unsigned int t;
@@ -248,9 +238,27 @@ static byte createInfo(char* s, byte* dr) {
     strcat(s, tempString);
     strcat(s, "\n");}
   return ok;}
+
+void writeInfo(byte* dr) {
+  char infoString[50];
+  digitalWrite(GREENLED, LOW);
+  if(!createInfo(infoString, dr)) return;
+  Serial.print(logOpen() ? "T: " : "t: ");
+  Serial.print(infoString);
+  if(logOpen())
+    file.write((uint8_t*) infoString, strlen(infoString));
+  digitalWrite(GREENLED, HIGH);}
+
+void myloop(cbuf* b, byte* dr) {
+  for(;;) {
+    if(readSerial(b)) runCommand(b);
+    if(buttonPress()) handleButton();
+    if(now() >= timeToMeasure) {
+      timeToMeasure += delta;
+      writeInfo(dr);}}}
   
 // ----- MAIN -----
-void setup () {
+void setup() {
   byte dsRegisters[8];
   cbuf inBuffer;
   Serial.begin(57600);
@@ -261,15 +269,7 @@ void setup () {
   initializeSd();
   initializeThermistor(dsRegisters);
   inBuffer.n = 0;
-  for(;;) myloop(&inBuffer, dsRegisters);}
-
-void myloop (cbuf* b, byte* dr) {
-  char infoString[50];
-  pause(b);
-  if(!createInfo(infoString, dr)) return;
-  Serial.print(logOpen() ? "T: " : "t: ");
-  Serial.print(infoString);
-  if(logOpen())
-    file.write((uint8_t*) infoString, strlen(infoString));}
+  digitalWrite(GREENLED, HIGH);
+  myloop(&inBuffer, dsRegisters);}
 
 void loop() {}
