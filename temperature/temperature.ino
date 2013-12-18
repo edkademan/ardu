@@ -16,15 +16,15 @@
 #define BUTTON      2
 #define GREENLED    3
 #define REDLED      4
-#define ONEWIREPIN  7
 #define CHIPSELECT 10
 
 static RTC_DS1307 RTC;
-static OneWire    ds(ONEWIREPIN);
 static int        delta = 10;	 /* measurement delta in seconds */
 static uint32_t   timeToMeasure; /* in seconds */
 static int        buttonWasPressed = 0;
 static File       file;
+
+static void ss(char* s) {Serial.println(s);}
 
 static int bufferFull(cbuf* b) {return b->n >= MAXBUFFER;}
 
@@ -50,15 +50,30 @@ static void initializeSd() {
 
 static int hiresDevice(byte* a) {return *a == 0x10;}
 
-static void initializeThermistor(byte* dr) {
-  ds.reset_search();
-  if(!ds.search(dr)) {
+#define initTherm(eltNo, pinNo) \
+  th[eltNo].pin = pinNo; \
+  sprintf(th[eltNo].description, "%s", "Pin pinNo"); \
+  th[eltNo].ds = &p ## pinNo; \
+  initializeThermistor(th+eltNo)
+
+#define NPINS 2
+static OneWire p7(7);
+//static OneWire p8(8);
+static OneWire p9(9);
+
+static void initializeThermistors(therm* th) {
+  initTherm(0,7); initTherm(1,9);}
+//  initTherm(0,7); initTherm(1,8); initTherm(2,9);}
+
+static void initializeThermistor(therm* th) {
+  th->ds->reset_search();
+  if(!th->ds->search(th->registers)) {
     Serial.println("FATAL: ADDR?");
     fail();}
-  if(OneWire::crc8(dr, 7) != dr[7]) {
+  if(OneWire::crc8(th->registers, 7) != th->registers[7]) {
     Serial.println("FATAL: ACRC?");
     fail();}
-  switch (dr[0]) {
+  switch (th->registers[0]) {
   case 0x10:
     Serial.print("DS18S20: ");
     break;
@@ -72,38 +87,38 @@ static void initializeThermistor(byte* dr) {
     Serial.print("FATAL: DEV?");
     fail();} 
   for(int i=0;i<7;i++) {
-    Serial.print(dr[i],HEX);
+    Serial.print(th->registers[i],HEX);
     Serial.write(' ');}
   Serial.println();}
 
 #define MEASURE     0x44
 #define READSCRATCH 0xbe
 
-static void readScratchpad(byte* dr, byte* d) {
-  ds.reset(); ds.select(dr);
-  ds.write(MEASURE, 1);
+static void readScratchpad(therm* th, byte* d) {
+  th->ds->reset(); th->ds->select(th->registers);
+  th->ds->write(MEASURE, 1);
   delay(1000);
-  ds.reset(); ds.select(dr);
-  ds.write(READSCRATCH);
-  for(int i=0; i<9; i++) d[i] = ds.read();}
+  th->ds->reset(); th->ds->select(th->registers);
+  th->ds->write(READSCRATCH);
+  for(int i=0; i<9; i++) d[i] = th->ds->read();}
 
-static unsigned int readTemperature(byte* dr, byte *ok) {
+static unsigned int readTemperature(therm* th, byte *ok) {
   unsigned int raw = 0;
   byte data[9];
   
-  readScratchpad(dr, data);
   *ok = 0;
+  readScratchpad(th, data);
   if(OneWire::crc8(data, 8) != data[8]) return raw;
   *ok = 1;
   raw = (data[1] << 8) | data[0];
-  if(hiresDevice(dr)) {
+  if(hiresDevice(th->registers)) {
     raw <<= 3;			// 9 bit resolution default
     if (data[7] == 0x10) {
       // count remain gives full 12 bit resolution
       raw = (raw & 0xFFF0) + 12 - data[6];}
     return raw;}
   return raw << 3 - ((data[4]>>5) & 0x3);}
-    
+
 /* format the time into string s */
 static void formatCurrentTime(char* s) {
   DateTime n = RTC.now();
@@ -118,11 +133,18 @@ static int closestInt(float x) {return (int) (x + .5*sign(x));}
    As of 2013-3 and Arduino 1.0.3 I can't seem to use the f format
    with sprintf.
 */
-static void formatTemp(uint16_t t, char* s) {
+static void formatTemp(byte ok, int pin, uint16_t t, char* s) {
   int cfahr;
-  cfahr = closestInt(100.*(32. + 1.8*t/16.)); /* fahrenheit × 100 */
-  sprintf(s, "%3d.%02d %x", cfahr/100, sign(cfahr)*cfahr%100, t);}
+  char tt[10];
 
+  sprintf(s, "%d ", pin);
+  if(!ok) {
+    sprintf(tt, "NA");
+  } else {
+    cfahr = closestInt(100.*(32. + 1.8*t/16.)); /* fahrenheit × 100 */
+    sprintf(tt, "%3d.%02d", cfahr/100, sign(cfahr)*cfahr%100);}
+  strcat(s, tt);}
+  
 static void formatFileName(char* s, int k) {
   DateTime n = RTC.now();
   sprintf(s, "%02d%02d%02d_%c.log",
@@ -225,51 +247,55 @@ static int buttonPress() {
     if(!buttonWasPressed) return 0;}
   return 1;}
 
-static byte createInfo(char* s, byte* dr) {
-  byte ok = 0;
+static void createInfo(char* s, therm* th) {
+  byte ok;
   unsigned int t;
-  char tempString[50];
+  char tempString[50], timeString[50];
 
-  t = readTemperature(dr, &ok);
-  if(ok) {
-    formatCurrentTime(s);
-    formatTemp(t, tempString);
+  s[0] = 0;
+  for(int i=0; i<NPINS; i++) {
+    t = readTemperature(th+i, &ok);
+    formatTemp(ok, th[i].pin, t, tempString);
+    formatCurrentTime(timeString);
+    strcat(s, timeString);
     strcat(s, " ");
     strcat(s, tempString);
-    strcat(s, "\n");}
-  return ok;}
+    strcat(s, "\n");}}
 
-void writeInfo(byte* dr) {
-  char infoString[50];
+void writeInfo(therm* th) {
+  char infoString[200];
+
   digitalWrite(GREENLED, LOW);
-  if(!createInfo(infoString, dr)) return;
-  Serial.print(logOpen() ? "T: " : "t: ");
+  createInfo(infoString, th);
   Serial.print(infoString);
-  if(logOpen())
-    file.write((uint8_t*) infoString, strlen(infoString));
+  if(logOpen()) {
+    ss("writing to log file");
+    file.write((uint8_t*) "boo", 3);
+    file.flush();}
   digitalWrite(GREENLED, HIGH);}
 
-void myloop(cbuf* b, byte* dr) {
+void myloop(cbuf* b, therm* th) {
   for(;;) {
     if(readSerial(b)) runCommand(b);
     if(buttonPress()) handleButton();
     if(now() >= timeToMeasure) {
       timeToMeasure += delta;
-      writeInfo(dr);}}}
+      writeInfo(th);}}}
   
 // ----- MAIN -----
 void setup() {
-  byte dsRegisters[8];
+  therm th[NPINS];
   cbuf inBuffer;
+
   Serial.begin(57600);
   pinMode(BUTTON,   INPUT);
   pinMode(REDLED,   OUTPUT);
   pinMode(GREENLED, OUTPUT);
   initializeRtc();
   initializeSd();
-  initializeThermistor(dsRegisters);
+  initializeThermistors(th);
   inBuffer.n = 0;
   digitalWrite(GREENLED, HIGH);
-  myloop(&inBuffer, dsRegisters);}
+  myloop(&inBuffer, th);}
 
 void loop() {}
