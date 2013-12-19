@@ -50,19 +50,26 @@ static void initializeSd() {
 
 static int hiresDevice(byte* a) {return *a == 0x10;}
 
+static OneWire p7(7);
+static OneWire p8(8);
+static OneWire p9(9);
+#define NPINS 1
+
+static void initializeThermistors(therm* th) {
+  th[0].pin = 7;
+  sprintf(th[0].description, "%s", "Pin 7");
+  th[0].ds = &p7;
+  initializeThermistor(th);
+}
+
 #define initTherm(eltNo, pinNo) \
   th[eltNo].pin = pinNo; \
   sprintf(th[eltNo].description, "%s", "Pin pinNo"); \
   th[eltNo].ds = &p ## pinNo; \
   initializeThermistor(th+eltNo)
 
-#define NPINS 2
-static OneWire p7(7);
-//static OneWire p8(8);
-static OneWire p9(9);
-
-static void initializeThermistors(therm* th) {
-  initTherm(0,7); initTherm(1,9);}
+//static void initializeThermistors(therm* th) {
+//  initTherm(0,9);}
 //  initTherm(0,7); initTherm(1,8); initTherm(2,9);}
 
 static void initializeThermistor(therm* th) {
@@ -267,11 +274,10 @@ void writeInfo(therm* th) {
 
   digitalWrite(GREENLED, LOW);
   createInfo(infoString, th);
-  Serial.print(infoString);
   if(logOpen()) {
-    ss("writing to log file");
-    file.write((uint8_t*) "boo", 3);
+    file.write((uint8_t*) infoString, strlen(infoString));
     file.flush();}
+  Serial.print(infoString);
   digitalWrite(GREENLED, HIGH);}
 
 void myloop(cbuf* b, therm* th) {
