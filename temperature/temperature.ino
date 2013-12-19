@@ -275,7 +275,7 @@ void writeInfo(therm* th) {
   digitalWrite(GREENLED, LOW);
   createInfo(infoString, th);
   if(logOpen()) {
-    file.write((uint8_t*) infoString, strlen(infoString));
+    file.write(infoString);
     file.flush();}
   Serial.print(infoString);
   digitalWrite(GREENLED, HIGH);}
