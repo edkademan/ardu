@@ -18,12 +18,21 @@
 #define GREENLED    3
 #define REDLED      4
 #define CHIPSELECT 10
+#define NPINS       3  // number of thermistor pins
 
 RTC_DS1307 RTC;
 int        delta = 10;	 /* measurement delta in seconds */
 uint32_t   timeToMeasure; /* in seconds */
 int        buttonWasPressed = 0;
 File       file;
+
+OneWire p7(7);   DallasTemperature d7(&p7);
+OneWire p8(8);   DallasTemperature d8(&p8);
+OneWire p9(9);   DallasTemperature d9(&p9);
+
+therm th[] = {7, "pin 7", &d7,
+	      8, "pin 8", &d8,
+	      9, "pin 9", &d9};
 
 void ss(char* s) {Serial.println(s);}
 
@@ -49,42 +58,8 @@ void initializeSd() {
     Serial.println("FATAL: SD");
     fail();}}
 
-// create DallasTemperature objects, eg d7 d8 ...
-#define cD(pin) \
-  OneWire p##pin(pin);  \
-  DallasTemperature d##pin(&p##pin)
-
-cD(7); cD(8); cD(9);
-
-#define NPINS 2  // number of thermistor pins
-
-#define initTherm(eltNo, pinNo) \
-  th[eltNo].pin = pinNo; \
-  sprintf(th[eltNo].description, "%s", "Pin pinNo"); \
-  th[eltNo].ds = &p ## pinNo; \
-  initializeThermistor(th+eltNo)
-
-void initializeThermistors(therm* th) {
-  th[0].pin = 7;
-  sprintf(th[0].description, "%s", "Pin 7");
-  th[0].ds = &p7;
-  initializeThermistor(th);
-}
-
-//static void initializeThermistors(therm* th) {
-//  initTherm(0,9);}
-//  initTherm(0,7); initTherm(1,8); initTherm(2,9);}
-
-#define MEASURE     0x44
-#define READSCRATCH 0xbe
-
-void readScratchpad(therm* th, byte* d) {
-  th->ds->reset(); th->ds->select(th->registers);
-  th->ds->write(MEASURE, 1);
-  delay(1000);
-  th->ds->reset(); th->ds->select(th->registers);
-  th->ds->write(READSCRATCH);
-  for(int i=0; i<9; i++) d[i] = th->ds->read();}
+void initializeThermistors() {
+  for(int i=0; i<NPINS; i++) th[i].ds->begin();}
 
 /* format the time into string s */
 void formatCurrentTime(char* s) {
@@ -100,13 +75,13 @@ int closestInt(float x) {return (int) (x + .5*sign(x));}
    As of 2013-3 and Arduino 1.0.3 I can't seem to use the f format
    with sprintf.
 */
-void formatTemp(byte ok, int pin, uint16_t t, char* s) {
+void formatTemp(byte ok, int pin, float t, char* s) {
   int cfahr;
 
   if(!ok) {
     sprintf(s, "%d NA", pin);
     return;}
-  cfahr = closestInt(100.*(32. + 1.8*t/16.)); /* fahrenheit × 100 */
+  cfahr = closestInt(100.*t); /* fahrenheit × 100 */
   sprintf(s, "%d %3d.%02d", pin, cfahr/100, sign(cfahr)*cfahr%100);}
   
 void formatFileName(char* s, int k) {
@@ -211,14 +186,22 @@ int buttonPress() {
     if(!buttonWasPressed) return 0;}
   return 1;}
 
-void createInfo(char* s, therm* th) {
+float readTemperature(int n, byte *ok) {
+  float x;
+
+  th[n].ds->requestTemperatures();
+  x = th[n].ds->getTempFByIndex(0);
+  *ok = x > -150;
+  return x;}
+  
+void createInfo(char* s) {
   byte ok;
-  unsigned int t;
+  float t;
   char tempString[50], timeString[50];
 
   s[0] = 0;
   for(int i=0; i<NPINS; i++) {
-    t = readTemperature(th+i, &ok);
+    t = readTemperature(i, &ok);
     formatTemp(ok, th[i].pin, t, tempString);
     formatCurrentTime(timeString);
     strcat(s, timeString);
@@ -226,28 +209,27 @@ void createInfo(char* s, therm* th) {
     strcat(s, tempString);
     strcat(s, "\n");}}
 
-void writeInfo(therm* th) {
+void writeInfo() {
   char infoString[200];
 
   digitalWrite(GREENLED, LOW);
-  createInfo(infoString, th);
+  createInfo(infoString);
   if(logOpen()) {
     file.write(infoString);
     file.flush();}
   Serial.print(infoString);
   digitalWrite(GREENLED, HIGH);}
 
-void myloop(cbuf* b, therm* th) {
+void myloop(cbuf* b) {
   for(;;) {
     if(readSerial(b)) runCommand(b);
     if(buttonPress()) handleButton();
     if(now() >= timeToMeasure) {
       timeToMeasure += delta;
-      writeInfo(th);}}}
+      writeInfo();}}}
   
 // ----- MAIN -----
 void setup() {
-  therm th[NPINS];
   cbuf inBuffer;
 
   Serial.begin(57600);
@@ -256,9 +238,9 @@ void setup() {
   pinMode(GREENLED, OUTPUT);
   initializeRtc();
   initializeSd();
-  initializeThermistors(th);
+  initializeThermistors();
   inBuffer.n = 0;
   digitalWrite(GREENLED, HIGH);
-  myloop(&inBuffer, th);}
+  myloop(&inBuffer);}
 
 void loop() {}

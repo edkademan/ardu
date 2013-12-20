@@ -8,6 +8,5 @@ typedef struct {
 typedef struct {
   int pin;
   char description[MAXBUFFER];
-  OneWire* ds;
-  byte registers[8];
+  DallasTemperature* ds;
 } therm;
