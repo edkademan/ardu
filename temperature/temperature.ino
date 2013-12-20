@@ -142,15 +142,12 @@ static int closestInt(float x) {return (int) (x + .5*sign(x));}
 */
 static void formatTemp(byte ok, int pin, uint16_t t, char* s) {
   int cfahr;
-  char tt[10];
 
-  sprintf(s, "%d ", pin);
   if(!ok) {
-    sprintf(tt, "NA");
-  } else {
-    cfahr = closestInt(100.*(32. + 1.8*t/16.)); /* fahrenheit × 100 */
-    sprintf(tt, "%3d.%02d", cfahr/100, sign(cfahr)*cfahr%100);}
-  strcat(s, tt);}
+    sprintf(s, "%d NA", pin);
+    return;}
+  cfahr = closestInt(100.*(32. + 1.8*t/16.)); /* fahrenheit × 100 */
+  sprintf(s, "%d %3d.%02d", pin, cfahr/100, sign(cfahr)*cfahr%100);}
   
 static void formatFileName(char* s, int k) {
   DateTime n = RTC.now();
