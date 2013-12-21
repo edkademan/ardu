@@ -21,7 +21,7 @@
 #define NPINS       3  // number of thermistor pins
 
 RTC_DS1307 RTC;
-int        delta = 10;	 /* measurement delta in seconds */
+int        delta = 15*60;	/* measurement delta in seconds */
 uint32_t   timeToMeasure; /* in seconds */
 int        buttonWasPressed = 0;
 File       file;
