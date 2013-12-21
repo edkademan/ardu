@@ -23,7 +23,7 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
 * Additional Libraries
   - [[http://www.ladyada.net/make/logshield/rtc.html][RTClib]]
   - [[http://www.arduino.cc/playground/Learning/OneWire][OneWire]]
-  - DallasTemperature
+  - [[http://milesburton.com/Dallas_Temperature_Control_Library][DallasTemperature]]
 
 * Stand Alone Operation
   - Startup
