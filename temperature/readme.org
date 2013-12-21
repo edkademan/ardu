@@ -7,22 +7,23 @@ This code is based on the datalogger project hosted [[https://github.com/cnvogel
     - Arduino Uno
     - [[http://www.ladyada.net/make/logshield/][Adafruit Data Logger Shield]]
     - 1 Push Button
-    - 1 DS18B20 Temperature Sensor
+    - 3 DS18B20 Temperature Sensor
   - Wiring
     - DIGITAL 2 Input Push Button (toggle log recording on SD card)
     - DIGITAL 3 green LED (on => logger is ok)
     - DIGITAL 4 red LED   (on => logger is writing to SD card)
-    - DIGITAL 7 data pin DS 18B20
+    - DIGITAL 7,8,9 data pins for DS 18B20's
 
 See the arduino button [[http://www.arduino.cc/en/Tutorial/button][tutorial]] on how to connect the button.  The two
 LEDs are already available on the shield, you only have to connect
-them to the DIGITAL ports of the Arduino. The temperature sensor
+them to the DIGITAL ports of the Arduino. The temperature sensors
 needs +5V and GND additionally. Take these lines directly from the
 shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datasheet]] for the pin out of the sensor.
 
 * Additional Libraries
   - [[http://www.ladyada.net/make/logshield/rtc.html][RTClib]]
   - [[http://www.arduino.cc/playground/Learning/OneWire][OneWire]]
+  - DallasTemperature
 
 * Stand Alone Operation
   - Startup
@@ -36,7 +37,7 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
       logging readings to a file on the SD card.
     - If the red led blinks then something went wrong.
       + Check the SD Card.
-      + Check the temperature sensor.
+      + Check the temperature sensors.
       + Check the real time clock.
       + Reset and try again.
       + Connect to a computer and look for a possible error message on
@@ -53,10 +54,8 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
 With the unit connected to a usb port open the serial console in the
 Arduino IDE to see the output of the logger.
   - Reading from the Serial Connection
-    - On startup the program prints out the temperature sensor type
-      and code.
-    - At regular intervals it prints out a timestamp and the
-      temperature.
+    - At regular intervals the program prints out a timestamp and the
+      temperatures.
     - It also prints out messages describing any errors it encounters.
   - Writing to the Serial Connection
 
@@ -74,8 +73,8 @@ Arduino IDE to see the output of the logger.
 	
       09:30:25
 
-    - By default the software will take a temperature reading every 10
-      seconds. You can change this by entering a "d" followed by a
+    - By default the software will take a temperature reading every 15
+      minutes. You can change this by entering a "d" followed by a
       number. This will make the time interval between temperature
       samples that number of seconds. For example to sample every two
       minutes enter:
@@ -97,10 +96,9 @@ the log file has 5 components:
   - the date as yyyy-mm-dd,
   - the time as hh:mm:ss,
   - the time as number of seconds since the epoch (1970-1-1),
-  - the temperature in fahrenheit, and
-  - the raw temperature reading as a hexadecimal number. (For the
-    DS18B20 this is the temperature in celsius times 16.)
+  - the pin number of the thermistor, and
+  - the temperature in fahrenheit.
 
 For example, a line will look something like this:
 
-  2013-03-05 11:15:44 1362482144  72.50 168
+  2013-12-21 13:15:27 1387631727 7  36.05
