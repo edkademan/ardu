@@ -241,6 +241,7 @@ void setup() {
   initializeThermistors();
   inBuffer.n = 0;
   digitalWrite(GREENLED, HIGH);
+  openLogFile();
   myloop(&inBuffer);}
 
 void loop() {}

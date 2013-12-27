@@ -34,7 +34,8 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
       (almost) constantly. It only blinks off for a moment when the
       program takes and records a temperature reading.
     - The red led is on solidly---not blinking---when the software is
-      logging readings to a file on the SD card.
+      logging readings to a file on the SD card. This happens
+      automatically on startup.
     - If the red led blinks then something went wrong.
       + Check the SD Card.
       + Check the temperature sensors.
@@ -42,13 +43,9 @@ shield. See the [[http://datasheets.maximintegrated.com/en/ds/DS18S20.pdf][datas
       + Reset and try again.
       + Connect to a computer and look for a possible error message on
         the serial console.
-  - Pushing the Button
-    - Pressing the button will instruct the software to log readings
-      to a file on the SD card. The red led should light up.
-    - Pressing the button a second time will disable logging and close
-      the file. The red led will go out.
-    - You can repeat the above sequence as many times as you want to
-      resume logging to new files.
+  - Pressing the button will toggle logging to the SD card. Each time
+    you enable logging the red led will come on and the program will
+    create a new file on the card.
 
 * Operating While Connected to a Host Computer
 With the unit connected to a usb port open the serial console in the
@@ -82,7 +79,7 @@ Arduino IDE to see the output of the logger.
       d 120
 
     - Enter "o" to open a log file on the SD card, and enter "c" to
-      close it again.
+      close it.
 	
     - Enter "r" to read the date and time of the clock.
 
