@@ -9,9 +9,9 @@ dstDef dstStart = {3, secondSunday};
 dstDef dstEnd   = {11, firstSunday};
 
 int leapYear(int y) {
-  y % 400 == 0 return 1;
-  y % 100 == 0 return 0;
-  y % 4   == 0 return 1;
+  if(y % 400 == 0) return 1;
+  if(y % 100 == 0) return 0;
+  if(y % 4   == 0) return 1;
   return 0;}
 
 int daysInMonth(int y, int m) {
@@ -51,6 +51,20 @@ int dstCurrently() {
   if(now() < dstDefToUnixtime(dstStart)) return 0;
   if(now() > dstDefToUnixtime(dstEnd))   return 0;
   return 1;}
+
+void maybeAdjustForDst() {
+  Datetime n = RTC.now().unixtime();
+  if(dstCurrently) {
+    if(DST) return;
+    DateTime set1(n + 3600);
+    RTC.adjust(set1);
+    DST = 1;
+    return;}
+  /* currently standard time */
+  if(DST) {
+    DateTime set2(n - 3600);
+    RTC.adjust(set2);
+    DST = 0;}}
 
 /* ************** maybe unnecessary ******************* */
 int monthOffset(int m) {
