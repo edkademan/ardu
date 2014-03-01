@@ -30,9 +30,9 @@ OneWire p7(7);   DallasTemperature d7(&p7);
 OneWire p8(8);   DallasTemperature d8(&p8);
 OneWire p9(9);   DallasTemperature d9(&p9);
 
-therm th[] = {7, "pin 7", &d7,
-	      8, "pin 8", &d8,
-	      9, "pin 9", &d9};
+therm th[] = {{7, "pin 7", &d7},
+	      {8, "pin 8", &d8},
+	      {9, "pin 9", &d9}};
 
 void ss(char* s) {Serial.println(s);}
 
@@ -44,7 +44,7 @@ void fail() {
     digitalWrite(REDLED, LOW);  delay(200);}}
 
 // Return the current time in seconds since epoch.
-uint32_t now() {RTC.now().unixtime();}
+uint32_t now() {return RTC.now().unixtime();}
 
 void initializeRtc() {
   Wire.begin();
