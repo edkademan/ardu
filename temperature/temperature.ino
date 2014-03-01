@@ -141,7 +141,8 @@ void adjustClock(char* b) {
 void setDelta(char* b) {
   sscanf(b, "d%d", &delta);
   Serial.print("delta is ");
-  Serial.println(delta);}
+  Serial.println(delta);
+  timeToMeasure = now() + delta;}
 
 int readSerial(cbuf* b) {
   char c;
@@ -225,7 +226,7 @@ void myloop(cbuf* b) {
     if(readSerial(b)) runCommand(b);
     if(buttonPress()) handleButton();
     if(now() >= timeToMeasure) {
-      timeToMeasure += delta;
+      timeToMeasure = now() + delta;
       writeInfo();}}}
   
 // ----- MAIN -----
