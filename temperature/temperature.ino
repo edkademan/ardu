@@ -22,7 +22,7 @@
 
 RTC_DS1307 RTC;
 int        delta = 15*60;	/* measurement delta in seconds */
-uint32_t   timeToMeasure;	/* in seconds */
+uint32_t   timeToMeasure; /* in seconds */
 int        buttonWasPressed = 0;
 File       file;
 
@@ -60,104 +60,6 @@ void initializeSd() {
 
 void initializeThermistors() {
   for(int i=0; i<NPINS; i++) th[i].ds->begin();}
-
-/*
-  daylight saving time active? (1 yes, 0 no)
-  The code consults this to see if it's necessary to switch.
-*/
-int DST = 0;    /* daylight saving time active? (1 yes, 0 no) */
-
-/* start/end of dst, month and sunday */
-dstdef dstStart = {3, secondSunday};
-dstdef dstEnd   = {11, firstSunday};
-
-int monthOffset(int m) {
-  switch(m) {
-  case  1: return 0;
-  case  2: return 3;
-  case  3: return 3;
-  case  4: return 6;
-  case  5: return 1;
-  case  6: return 4;
-  case  7: return 6;
-  case  8: return 2;
-  case  9: return 5;
-  case 10: return 0;
-  case 11: return 3;
-  case 12: return 5;}
-  return -1;}
-
-int leapYear(int y) {
-  if(y % 400 == 0) return 1;
-  if(y % 100 == 0) return 0;
-  if(y % 4   == 0) return 1;
-  return 0;}
-
-/*
-   Given year, month, and day of month return the day of
-   week. (0=sunday, 6=saturday)
-*/
-int dayOfWeek(int y, int m, int dom) {
-  int c,z;
-  c = (int) y / 100;
-  c -= 15;
-  c %= 4;
-  c -= 4;
-  c *= -2;
-  c %= 8;
-  z = y % 100;
-  return (((int) z)/4 + z + c + monthOffset(m) + dom -
-	  (leapYear(y) && m<=2)) % 7;}
-
-int daysInMonth(int y, int m) {
-  switch(m) {
-  case 1: case 3: case 5: case 7: case 8: case 10: case 12: return 31;
-  case 4: case 6: case 9: case 11: return 30;}
-  /* only February left */
-  return leapYear(y) ? 29 : 28;}
-
-/* 
-   Find the days of month of all the sundays in month m for year
-   y. The argument s is an array of length 5 that holds the first,
-   second, third, fourth and last sundays.
-*/
-void sundaysFor(int y, int m, int* s) {
-  int f, s0;
-  f  = dayOfWeek(y, m, 1);	/* of 1st day of month */
-  s0 = f ? 8-f : 1;		/* 1st sunday */
-  for(int i=0; i<5; i++) s[i] = s0 + i*7;
-  s[4] = (s[4] > daysInMonth(y, m)) ? s[3] : s[4];}
-
-uint32_t dstdefToUnixtime(dstdef d) {
-  int dom = -1, s[5], y = RTC.now().year();
-  sundaysFor(y, d.mon, s);
-  switch(d.sun) {
-  case firstSunday:  dom = s[0]; break;
-  case secondSunday: dom = s[1]; break;
-  case thirdSunday:  dom = s[2]; break;
-  case fourthSunday: dom = s[3]; break;
-  case lastSunday:   dom = s[4]; break;}
-  DateTime n(y, d.mon, dom, 2, 0, 0);
-  return n.unixtime();}
-
-int dstCurrently() {
-  if(now() < dstdefToUnixtime(dstStart)) return 0;
-  if(now() > dstdefToUnixtime(dstEnd))   return 0;
-  return 1;}
-
-void maybeAdjustForDst() {
-  uint32_t n = RTC.now().unixtime();
-  if(dstCurrently()) {
-    if(DST) return;
-    DateTime set1(n + 3600);
-    RTC.adjust(set1);
-    DST = 1;
-    return;}
-  /* currently standard time */
-  if(DST) {
-    DateTime set2(n - 3600);
-    RTC.adjust(set2);
-    DST = 0;}}
 
 /* format the time into string s */
 void formatCurrentTime(char* s) {
@@ -233,7 +135,6 @@ void adjustClock(char* b) {
     if(strlen(b) <= 5) s = 0; else sscanf(b+5, ":%d", &s);}
   DateTime set(y, m, d, h, mm, s);
   RTC.adjust(set);
-  DST = dstCurrently();
   printDateTime();
   timeToMeasure = now() + delta;}
     
@@ -325,7 +226,6 @@ void myloop(cbuf* b) {
     if(readSerial(b)) runCommand(b);
     if(buttonPress()) handleButton();
     if(now() >= timeToMeasure) {
-      maybeAdjustForDst();
       timeToMeasure = now() + delta;
       writeInfo();}}}
   

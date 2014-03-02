@@ -1,7 +1,7 @@
 #define MAXBUFFER 50
 
 enum sunday
-  {firstSunday, secondSunday, thirdSunday, fourthSunday, lastSunday};
+  {firstSunday, secondSunday, thirdSunday, fourthSunday, lastSunday}
 
 typedef struct {
   int n;			/* number of characters in buffer */
